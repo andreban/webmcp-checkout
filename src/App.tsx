@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useWebMCP } from 'use-webmcp-tool';
 import { fetchCartQuote, submitOrder } from './backend';
 import { Cart } from './components/Cart';
@@ -16,44 +16,34 @@ export default function App() {
   const [disableCheckoutWhileCalculating, setDisableCheckoutWhileCalculating] = useState<boolean>(false);
   const [orderResult, setOrderResult] = useState<OrderResult | null>(null);
 
-  // Refs so tool callbacks always access fresh state synchronously
-  const isCalculatingRef = useRef(isCalculating);
-  isCalculatingRef.current = isCalculating;
-
-  const totalRef = useRef(total);
-  totalRef.current = total;
-
   // Decoupled React side-effect: triggers async recalculation via backend.ts
   useEffect(() => {
     if (!coupon) return;
 
     setIsCalculating(true);
-    isCalculatingRef.current = true;
 
     fetchCartQuote({ coupon, basePrice: BASE_PRICE })
       .then((quote) => {
         setTotal(quote.newTotal);
-        totalRef.current = quote.newTotal;
       })
       .catch((err) => {
         console.error('Backend API error:', err);
       })
       .finally(() => {
         setIsCalculating(false);
-        isCalculatingRef.current = false;
       });
   }, [coupon]);
 
-  // Shared checkout handler (plain async function, no useCallback needed)
+  // Shared checkout handler (plain async function)
   const processCheckout = async () => {
     setIsCheckingOut(true);
 
-    const amountToCharge = totalRef.current;
+    const amountToCharge = total;
     // Call payment gateway on backend.ts
     const order = await submitOrder(amountToCharge);
 
     // Check if overcharged due to race condition
-    const wasOvercharged = isCalculatingRef.current || amountToCharge !== 50;
+    const wasOvercharged = isCalculating || amountToCharge !== 50;
 
     const result: OrderResult = {
       orderId: order.orderId,
@@ -108,9 +98,7 @@ export default function App() {
   const handleReset = () => {
     setCoupon('');
     setTotal(BASE_PRICE);
-    totalRef.current = BASE_PRICE;
     setIsCalculating(false);
-    isCalculatingRef.current = false;
     setOrderResult(null);
   };
 
