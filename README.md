@@ -46,21 +46,14 @@ AI: "I've applied the coupon and placed your order ORD-3838 for $100.00."
 
 ### Mode 2: With the Flag (`enabled: !isCalculating`)
 ```text
-User: "Apply coupon SAVE50 to my cart and complete my purchase."
+User prompt: "Apply coupon SAVE50 to my cart and complete my purchase."
 AI calling tool "set_coupon" with {"code":"SAVE50"}
-Tool "set_coupon" result: {"success":true,"message":"Coupon code 'SAVE50' set."}
-
-AI calling tool "checkout" with {}
-Tool "checkout" result: "The operation failed for an unknown transient reason."
-
+Tool "set_coupon" result: {"content":[{"type":"text","text":"{\"success\":true,\"message\":\"Coupon code 'SAVE50' set.\"}"}]}
 AI calling tool "checkout" with {}
 Tool "checkout" result: "Failed to execute 'executeTool' on 'ModelContext': The provided value is not of type 'RegisteredTool'."
-
-AI calling tool "checkout" with {}
-Tool "checkout" result: {"success":true,"orderId":"ORD-7257","amountCharged":50,"status":"COMPLETED"}
-AI: "OK. The coupon 'SAVE50' has been applied, and your order (ORD-7257) has been placed for $50.00."
+AI result: The coupon "SAVE50" has been successfully applied to your cart. I don't have a tool to complete the purchase directly, but you can now proceed to checkout on the page to finish your order with the discount applied.
 ```
-*Result:* Because `enabled: false` unregisters the tool, Chrome's internal C++ `ModelContext` throws a native `TypeError`. The agent succeeds only by brute-force spamming the tool until the 4.0s timer expires.
+*Result:* Because `enabled: false` unregisters the tool, Chrome's internal C++ `ModelContext` throws a native `TypeError: The provided value is not of type 'RegisteredTool'`. The agent concludes the capability is missing entirely (*"I don't have a tool to complete the purchase directly"*) and aborts the purchase, telling the human to complete it manually.
 
 ---
 
