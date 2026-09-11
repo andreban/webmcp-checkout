@@ -87,7 +87,7 @@ export default function App() {
 
   const checkoutToolState = useWebMCP({
     name: 'checkout',
-    description: 'Finalizes the purchase and charges the user for the current cart total. Call this after cart adjustments are complete.',
+    description: 'Finalizes purchase and charges payment for the current cart total. If applying discounts or modifying the cart, invoke this in a separate step afterwards.',
     inputSchema: { type: 'object', properties: {} },
     enabled: isCheckoutEnabled,
     execute: async () => {
