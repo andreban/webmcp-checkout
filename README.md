@@ -18,15 +18,14 @@ In modern React web applications, business logic is asynchronous and decoupled f
 
 ---
 
-## The Core Experiment: Comparing Approaches
+## The Core Experiment: Comparing Existing Approaches
 
-This demo provides a live toggle to compare the two ways developers might handle this today, versus the proposed `ready` protocol primitive:
+This demo provides a live toggle to compare the two ways developers can handle this with existing WebMCP capabilities:
 
 | Approach | Behavior | Agent Experience |
 | :--- | :--- | :--- |
-| **1. Always Enabled (Default)** | Tool remains registered with `enabled: true`. | 🚨 **Silent Overcharge:** Agent fires `checkout` before backend recalculation completes. Charges $100.00 instead of $50.00. |
-| **2. Using `enabled: !isCalculating`** | Tool is unregistered (`controller.abort()`) during the 1.5s recalculation. | 💥 **DOM Exceptions & Retries:** Tool vanishes from the browser. Agent hits Chrome `TypeError: Not of type 'RegisteredTool'` and must brute-force retry until re-registration. |
-| **3. Proposed: `ready: !isCalculating`** | Tool remains registered (`enabled: true`), but browser pauses execution. | ✅ **Zero Errors, Zero Retries:** Browser holds the invocation in a native Promise queue and executes cleanly once ready ($50.00 billed). |
+| **1. Without the Flag (Always Enabled)** | `checkout` remains registered with `enabled: true`. | 🚨 **Silent Overcharge:** Agent fires `checkout` before backend recalculation completes. Charges $100.00 instead of $50.00. |
+| **2. With the Flag (`enabled: !isCalculating`)** | `checkout` is unregistered (`controller.abort()`) during the 1.5s recalculation. | 💥 **DOM Exceptions & Retries:** Tool vanishes from the browser. Agent hits Chrome `TypeError: The provided value is not of type 'RegisteredTool'` and must brute-force retry until re-registration. |
 
 ---
 
