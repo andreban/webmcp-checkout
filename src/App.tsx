@@ -3,7 +3,6 @@ import { useWebMCP } from 'use-webmcp-tool';
 import { fetchCartQuote, submitOrder } from './backend';
 import { Cart } from './components/Cart';
 import { ResultBanner, type OrderResult } from './components/ResultBanner';
-import { Explainer } from './components/Explainer';
 import { PromptBox } from './components/PromptBox';
 import { ExperimentToggle } from './components/ExperimentToggle';
 
@@ -163,8 +162,6 @@ export default function App() {
       />
 
       <ResultBanner result={orderResult} />
-
-      <Explainer />
     </div>
   );
 }
