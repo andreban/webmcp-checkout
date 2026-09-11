@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 
-const SUGGESTED_PROMPT = "Apply the coupon 'SAVE50' to my cart and then checkout right away.";
+const SUGGESTED_PROMPT = "Apply coupon SAVE50 to my cart and complete my purchase.";
 
 export function PromptBox() {
   const [copied, setCopied] = useState(false);

@@ -20,8 +20,8 @@ export interface CartQuoteResponse {
  * - Return the authoritative new cart total
  */
 export async function fetchCartQuote(req: CartQuoteRequest): Promise<CartQuoteResponse> {
-  // Simulate 1.5s network round-trip latency to the backend
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+  // Simulate 4.0s network round-trip latency to the backend
+  await new Promise((resolve) => setTimeout(resolve, 4000));
 
   const code = req.coupon.trim().toUpperCase();
   const isValid = code === 'SAVE50';

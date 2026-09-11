@@ -114,7 +114,7 @@ export function Cart({
         }}
       >
         {isCalculating
-          ? '⏳ React useEffect is calling backend.ts in background (1.5s)... [UNREADY]'
+          ? '⏳ React useEffect is calling backend.ts in background (4.0s)... [UNREADY]'
           : '🟢 Application idle [READY]'}
       </div>
 

@@ -67,11 +67,11 @@ export default function App() {
   // WebMCP Tool 1: set_coupon (Fire-and-forget state update)
   useWebMCP<{ code: string }, any>({
     name: 'set_coupon',
-    description: 'Set discount coupon code (e.g. "SAVE50").',
+    description: 'Applies a discount coupon code to recalculate the cart total.',
     inputSchema: {
       type: 'object',
       properties: {
-        code: { type: 'string', description: 'Coupon code' },
+        code: { type: 'string', description: 'Coupon code (e.g. "SAVE50")' },
       },
       required: ['code'],
     },
@@ -87,7 +87,7 @@ export default function App() {
 
   const checkoutToolState = useWebMCP({
     name: 'checkout',
-    description: 'Finalize purchase and charge payment at current total.',
+    description: 'Finalizes the purchase and charges the user for the current cart total. Call this after cart adjustments are complete.',
     inputSchema: { type: 'object', properties: {} },
     enabled: isCheckoutEnabled,
     execute: async () => {

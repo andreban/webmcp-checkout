@@ -34,7 +34,7 @@ export function ExperimentToggle({
             </div>
             <div style={{ fontSize: '12px', color: '#64748b' }}>
               {disableOnCalc
-                ? 'Active: checkout tool will unregister from WebMCP for 1.5s during backend recalculation.'
+                ? 'Active: checkout tool will unregister from WebMCP for 4.0s during backend recalculation.'
                 : 'Inactive (Default): checkout tool stays registered (enabled: true), triggering the race condition.'}
             </div>
           </div>

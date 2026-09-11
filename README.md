@@ -25,7 +25,7 @@ This demo provides a live toggle to compare the two ways developers can handle t
 | Approach | Behavior | Agent Experience |
 | :--- | :--- | :--- |
 | **1. Without the Flag (Always Enabled)** | `checkout` remains registered with `enabled: true`. | 🚨 **Silent Overcharge:** Agent fires `checkout` before backend recalculation completes. Charges $100.00 instead of $50.00. |
-| **2. With the Flag (`enabled: !isCalculating`)** | `checkout` is unregistered (`controller.abort()`) during the 1.5s recalculation. | 💥 **DOM Exceptions & Retries:** Tool vanishes from the browser. Agent hits Chrome `TypeError: The provided value is not of type 'RegisteredTool'` and must brute-force retry until re-registration. |
+| **2. With the Flag (`enabled: !isCalculating`)** | `checkout` is unregistered (`controller.abort()`) during the 4.0s recalculation. | 💥 **DOM Exceptions & Retries:** Tool vanishes from the browser. Agent hits Chrome `TypeError: The provided value is not of type 'RegisteredTool'` and must brute-force retry until re-registration. |
 
 ---
 
@@ -33,7 +33,7 @@ This demo provides a live toggle to compare the two ways developers can handle t
 
 ### Mode 1: Without the Flag (Default WebMCP)
 ```text
-User: "Apply the coupon 'SAVE50' to my cart and then checkout right away."
+User: "Apply coupon SAVE50 to my cart and complete my purchase."
 AI calling tool "set_coupon" with {"code":"SAVE50"}
 Tool "set_coupon" result: {"success":true,"message":"Coupon code 'SAVE50' set."}
 AI calling tool "checkout" with {}
@@ -46,7 +46,7 @@ AI: "I've applied the coupon and placed your order ORD-3838 for $100.00."
 
 ### Mode 2: With the Flag (`enabled: !isCalculating`)
 ```text
-User: "Apply the coupon 'SAVE50' to my cart and then checkout right away."
+User: "Apply coupon SAVE50 to my cart and complete my purchase."
 AI calling tool "set_coupon" with {"code":"SAVE50"}
 Tool "set_coupon" result: {"success":true,"message":"Coupon code 'SAVE50' set."}
 
@@ -60,13 +60,13 @@ AI calling tool "checkout" with {}
 Tool "checkout" result: {"success":true,"orderId":"ORD-7257","amountCharged":50,"status":"COMPLETED"}
 AI: "OK. The coupon 'SAVE50' has been applied, and your order (ORD-7257) has been placed for $50.00."
 ```
-*Result:* Because `enabled: false` unregisters the tool, Chrome's internal C++ `ModelContext` throws a native `TypeError`. The agent succeeds only by brute-force spamming the tool 3 times until the 1.5s timer expires.
+*Result:* Because `enabled: false` unregisters the tool, Chrome's internal C++ `ModelContext` throws a native `TypeError`. The agent succeeds only by brute-force spamming the tool until the 4.0s timer expires.
 
 ---
 
 ## Architecture
 
-* **[`src/backend.ts`](./src/backend.ts):** Simulates remote backend services (`fetchCartQuote` for coupon calculation with 1.5s latency, and `submitOrder` for payment processing).
+* **[`src/backend.ts`](./src/backend.ts):** Simulates remote backend services (`fetchCartQuote` for coupon calculation with 4.0s latency, and `submitOrder` for payment processing).
 * **[`src/App.tsx`](./src/App.tsx):** Root React component exposing WebMCP tools via `useWebMCP`:
   * `set_coupon`: Sets the promo code in state and triggers decoupled recalculation.
   * `checkout`: Submits the order at the current cart total.
