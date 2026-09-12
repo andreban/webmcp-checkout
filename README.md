@@ -60,13 +60,18 @@ AI result: The coupon "SAVE50" has been successfully applied to your cart. I don
 ## Architecture
 
 * **[`src/backend.ts`](./src/backend.ts):** Simulates remote backend services (`fetchCartQuote` for coupon calculation with 4.0s latency, and `submitOrder` for payment processing).
-* **[`src/App.tsx`](./src/App.tsx):** Root React component exposing WebMCP tools via `useWebMCP`:
-  * `set_coupon`: Sets the promo code in state and triggers decoupled recalculation.
-  * `checkout`: Submits the order at the current cart total.
+* **[`src/App.tsx`](./src/App.tsx):** Root layout shell managing page structure, header/footer layout, and order reset coordination.
+* **[`src/components/Checkout.tsx`](./src/components/Checkout.tsx):** Feature component encapsulating the checkout lifecycle:
+  * Manages local cart state (`coupon`, `total`, `isCalculating`, `isCheckingOut`).
+  * Runs the decoupled React `useEffect` for backend recalculations.
+  * Registers co-located WebMCP tools via `useWebMCP`:
+    * `set_coupon`: Sets the promo code in state and triggers decoupled recalculation.
+    * `checkout`: Submits the order at the current cart total.
 * **[`src/components/`](./src/components/):**
+  * `Header.tsx` & `Footer.tsx`: Store branding and page layout.
   * `Cart.tsx`: Interactive cart with item, promo code input, and disabled checkout button during calculation.
-  * `PromptBox.tsx`: Suggested agent prompt with a 1-click clipboard copy button.
   * `ExperimentToggle.tsx`: Checkbox to toggle `enabled: !isCalculating`.
+  * `PromptBox.tsx`: Suggested agent prompt with a 1-click clipboard copy button.
   * `ResultBanner.tsx`: Order receipt displaying actual billed vs expected price.
 
 ---

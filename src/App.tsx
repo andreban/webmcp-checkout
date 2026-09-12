@@ -1,155 +1,77 @@
-import { useState, useEffect } from 'react';
-import { useWebMCP } from 'use-webmcp-tool';
-import { fetchCartQuote, submitOrder } from './backend';
-import { Cart } from './components/Cart';
-import { ResultBanner, type OrderResult } from './components/ResultBanner';
+import { useState } from 'react';
+import { Header } from './components/Header';
+import { Footer } from './components/Footer';
 import { PromptBox } from './components/PromptBox';
-import { ExperimentToggle } from './components/ExperimentToggle';
-
-const BASE_PRICE = 100;
+import { Checkout } from './components/Checkout';
+import { ResultBanner, type OrderResult } from './components/ResultBanner';
 
 export default function App() {
-  const [coupon, setCoupon] = useState<string>('');
-  const [total, setTotal] = useState<number>(BASE_PRICE);
-  const [isCalculating, setIsCalculating] = useState<boolean>(false);
-  const [isCheckingOut, setIsCheckingOut] = useState<boolean>(false);
-  const [disableCheckoutWhileCalculating, setDisableCheckoutWhileCalculating] = useState<boolean>(false);
   const [orderResult, setOrderResult] = useState<OrderResult | null>(null);
-
-  // Decoupled React side-effect: triggers async recalculation via backend.ts
-  useEffect(() => {
-    if (!coupon) return;
-
-    setIsCalculating(true);
-
-    fetchCartQuote({ coupon, basePrice: BASE_PRICE })
-      .then((quote) => {
-        setTotal(quote.newTotal);
-      })
-      .catch((err) => {
-        console.error('Backend API error:', err);
-      })
-      .finally(() => {
-        setIsCalculating(false);
-      });
-  }, [coupon]);
-
-  // Shared checkout handler (plain async function)
-  const processCheckout = async () => {
-    setIsCheckingOut(true);
-
-    const amountToCharge = total;
-    // Call payment gateway on backend.ts
-    const order = await submitOrder(amountToCharge);
-
-    // Check if overcharged due to race condition
-    const wasOvercharged = isCalculating || amountToCharge !== 50;
-
-    const result: OrderResult = {
-      orderId: order.orderId,
-      charged: order.amountCharged,
-      expected: 50,
-      isOvercharged: wasOvercharged,
-    };
-
-    setOrderResult(result);
-    setIsCheckingOut(false);
-
-    return {
-      success: true,
-      orderId: order.orderId,
-      amountCharged: order.amountCharged,
-      status: order.status,
-      message: `Order ${order.orderId} placed successfully. Charged $${order.amountCharged}.00.`,
-    };
-  };
-
-  // WebMCP Tool 1: set_coupon (Fire-and-forget state update)
-  useWebMCP<{ code: string }, any>({
-    name: 'set_coupon',
-    description: 'Applies a discount coupon code to recalculate the cart total.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        code: { type: 'string', description: 'Coupon code (e.g. "SAVE50")' },
-      },
-      required: ['code'],
-    },
-    execute: async ({ code }) => {
-      setCoupon(code);
-      return { success: true, message: `Coupon code '${code}' set.` };
-    },
-  });
-
-  // WebMCP Tool 2: checkout (Calls backend to process payment and reports back amount)
-  // Controlled by the experiment toggle: if active, enabled is false while calculating!
-  const isCheckoutEnabled = disableCheckoutWhileCalculating ? !isCalculating : true;
-
-  const checkoutToolState = useWebMCP({
-    name: 'checkout',
-    description: 'Finalizes purchase and charges payment for the current cart total. If applying discounts or modifying the cart, invoke this in a separate step afterwards.',
-    inputSchema: { type: 'object', properties: {} },
-    enabled: isCheckoutEnabled,
-    execute: async () => {
-      return await processCheckout();
-    },
-  });
+  const [checkoutKey, setCheckoutKey] = useState<number>(0);
 
   const handleReset = () => {
-    setCoupon('');
-    setTotal(BASE_PRICE);
-    setIsCalculating(false);
     setOrderResult(null);
+    setCheckoutKey((k) => k + 1);
   };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '40px auto', fontFamily: 'system-ui, sans-serif', padding: '0 20px', color: '#0f172a' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, margin: 0 }}>
-          WebMCP Demo: Missing "Ready" State
-        </h1>
-        {orderResult && (
-          <button
-            onClick={handleReset}
-            style={{
-              padding: '6px 12px',
-              backgroundColor: '#e2e8f0',
-              color: '#0f172a',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            Reset Order
-          </button>
-        )}
-      </div>
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        fontFamily: 'system-ui, sans-serif',
+        backgroundColor: '#f8fafc',
+        color: '#0f172a',
+      }}
+    >
+      <Header />
 
-      <p style={{ color: '#475569', fontSize: '14px', marginBottom: '20px' }}>
-        Demonstrating the race condition between decoupled React <code>useEffect</code> backend calls and tool invocations.
-      </p>
+      <main
+        style={{
+          maxWidth: '600px',
+          margin: '0 auto',
+          padding: '0 20px',
+          flex: 1,
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: 700, margin: 0 }}>
+            WebMCP Demo: Missing "Ready" State
+          </h1>
+          {orderResult && (
+            <button
+              onClick={handleReset}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: '#e2e8f0',
+                color: '#0f172a',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Reset Order
+            </button>
+          )}
+        </div>
 
-      <PromptBox />
+        <p style={{ color: '#475569', fontSize: '14px', marginBottom: '20px' }}>
+          Demonstrating the race condition between decoupled React <code>useEffect</code> backend calls and tool invocations.
+        </p>
 
-      <ExperimentToggle
-        disableOnCalc={disableCheckoutWhileCalculating}
-        onToggle={setDisableCheckoutWhileCalculating}
-        isCheckoutRegistered={checkoutToolState.registered}
-      />
+        <PromptBox />
 
-      <Cart
-        basePrice={BASE_PRICE}
-        coupon={coupon}
-        total={total}
-        isCalculating={isCalculating}
-        isCheckingOut={isCheckingOut}
-        onApplyCoupon={setCoupon}
-        onCheckout={processCheckout}
-      />
+        <Checkout key={checkoutKey} onOrderComplete={setOrderResult} />
 
-      <ResultBanner result={orderResult} />
+        <ResultBanner result={orderResult} />
+      </main>
+
+      <Footer />
     </div>
   );
 }
